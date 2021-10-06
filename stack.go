@@ -175,14 +175,19 @@ func callers() *stack {
 	return &st
 }
 
-// setCurrentAbsPath set absolute path as current program path.
-func SetCurrentAbsPath() {
-	dir := getCurrentAbsPathByExecutable()
-	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
-	if strings.Contains(dir, tmpDir) {
-		dir = getCurrentAbsPathByCaller()
+// setCurrentAbsPath set absolute path as current project path, ff you pass a string parameter, use this string as the absolute path of the project
+func SetCurrentAbsPath(path ...string) {
+	if len(path) == 0 {
+		dir := getCurrentAbsPathByExecutable()
+		tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
+		if strings.Contains(dir, tmpDir) {
+			dir = getCurrentAbsPathByCaller()
+		}
+		currentAbsPath = dir
+	} else {
+		currentAbsPath = path[0]
 	}
-	currentAbsPath = dir
+
 }
 
 func getCurrentAbsPathByExecutable() string {
