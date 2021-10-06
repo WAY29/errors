@@ -36,15 +36,18 @@ func Wrap(err error, msg string) error {
 	if err == nil {
 		return nil
 	}
+	if msg != "" {
+		msg += ": "
+	}
 	if customErr, ok := err.(Error); ok {
 		return Error{
-			msg:           fmt.Sprintf("%s: %s", msg, customErr.msg),
+			msg:           fmt.Sprintf("%s%s", msg, customErr.msg),
 			originalError: customErr,
 			stack:         callers(),
 		}
 	}
 
-	return Error{msg: fmt.Sprintf("%s: %s", msg, err.Error()), originalError: err, stack: callers()}
+	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), originalError: err, stack: callers()}
 }
 
 func Wrapf(err error, format string, args ...interface{}) error {
@@ -52,16 +55,19 @@ func Wrapf(err error, format string, args ...interface{}) error {
 		return nil
 	}
 	msg := fmt.Sprintf(format, args...)
+	if msg != "" {
+		msg += ": "
+	}
 
 	if customErr, ok := err.(Error); ok {
 		return Error{
-			msg:           fmt.Sprintf("%s: %s", msg, customErr.msg),
+			msg:           fmt.Sprintf("%s%s", msg, customErr.msg),
 			originalError: customErr,
 			stack:         callers(),
 		}
 	}
 
-	return Error{msg: fmt.Sprintf("%s: %s", msg, err.Error()), originalError: err, stack: callers()}
+	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), originalError: err, stack: callers()}
 }
 
 func Cause(err error) error {
