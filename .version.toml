@@ -1,4 +1,4 @@
 [main]
-  version   = "1.0.0"
-  tag       = true
   serialize = "{version}-{banner}"
+  tag = true
+  version = "1.0.0"
