@@ -13,12 +13,8 @@ import (
 )
 
 var (
-	currentAbsPath string
+	currentAbsPath string = getCurrentAbsPathByExecutable()
 )
-
-func init() {
-	currentAbsPath = getCurrentAbsPath()
-}
 
 // Frame represents a program counter inside a stack frame.
 // For historical reasons if Frame is interpreted as a uintptr
@@ -179,14 +175,14 @@ func callers() *stack {
 	return &st
 }
 
-// getCurrentAbsPath get current absolute path
-func getCurrentAbsPath() string {
+// setCurrentAbsPath set absolute path as current program path.
+func SetCurrentAbsPath() {
 	dir := getCurrentAbsPathByExecutable()
 	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
 	if strings.Contains(dir, tmpDir) {
-		return getCurrentAbsPathByCaller()
+		dir = getCurrentAbsPathByCaller()
 	}
-	return dir
+	currentAbsPath = dir
 }
 
 func getCurrentAbsPathByExecutable() string {
@@ -200,7 +196,7 @@ func getCurrentAbsPathByExecutable() string {
 
 func getCurrentAbsPathByCaller() string {
 	var abPath string
-	_, filename, _, ok := runtime.Caller(0)
+	_, filename, _, ok := runtime.Caller(2)
 	if ok {
 		abPath = path.Dir(filename)
 	}
@@ -210,7 +206,7 @@ func getCurrentAbsPathByCaller() string {
 // filename removes the path prefix component of a file name reported by func.file().
 func filename(path string) string {
 	relPath, err := filepath.Rel(currentAbsPath, path)
-	if err != nil {
+	if err != nil || strings.Contains(relPath, "../") || strings.Contains(relPath, "..\\") {
 		return path
 	}
 	return relPath
