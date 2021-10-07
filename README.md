@@ -46,6 +46,79 @@ default:
 }
 ```
 
+### How I use this library
+I usually encapsulate this library. For example
+```go
+package errors
+
+import (
+	"fmt"
+
+	"github.com/WAY29/errors"
+)
+
+type ErrorType uint16
+
+const (
+	Unknown ErrorType = iota
+	ProxyError
+	RequestError
+	ResponseError
+)
+
+var (
+    DebugFlag = true
+)
+
+type CustomError struct {
+	Type ErrorType
+	Msg  string
+}
+
+func (err CustomError) Error() string {
+	return err.Msg
+}
+
+func New(Type ErrorType, msg string) error {
+	return errors.Wrap(CustomError{Type: Type, Msg: msg}, "")
+}
+
+func Newf(Type ErrorType, format string, args ...interface{}) error {
+	return errors.Wrap(CustomError{Type: Type, Msg: fmt.Sprintf(format, args...)}, "")
+}
+
+func Wrap(err error, msg string) error {
+	return errors.Wrap(err, msg)
+}
+
+func Wrapf(err error, format string, args ...interface{}) error {
+	return errors.Wrapf(err, format, args...)
+}
+
+// PrintError
+func PrintError(err error) {
+	// print error context if debug
+	if DebugFlag {
+		switch customErr := errors.Cause(err).(type) {
+		case CustomError:
+			switch customErr.Type {
+            // case RequestError:
+            // case ResponseError:
+			// case ProxyError:
+			default:
+				fmt.Printf("%s: %+v", "Known Error", err)
+			}
+		default:
+			// raw error
+            fmt.Printf("%s: %+v", "Raw Error", err)
+		}
+	} else {
+        fmt.Printf("%v", err)
+	}
+}
+```
+
+
 ## Notice
 - If you run golang files by `go run`, please run `errors.SetCurrentAbsPath()` first, or stack message about path will be absolute path.
 - If you want to skip some frame about stack, please run `errors.SetSkipFrameNum(skipNum)`, this is usually used for your secondary encapsulation of the library.
