@@ -25,7 +25,7 @@ if err != nil {
 The **errors.Wrap()/errors.Wrapf()** function can also be used to add additional information to wrapped errors. For example
 ```go
 err := errors.New("an_error")
-errors.Wrap(err, "more information")
+err = errors.Wrap(err, "more information")
 fmt.Printf("%+v", err) // will print error message and context information
 ```
 
