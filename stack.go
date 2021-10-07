@@ -14,6 +14,7 @@ import (
 
 var (
 	currentAbsPath string = getCurrentAbsPathByExecutable()
+	skipNum        int    = 3
 )
 
 // Frame represents a program counter inside a stack frame.
@@ -170,12 +171,17 @@ func (s *stack) StackTrace() StackTrace {
 func callers() *stack {
 	const depth = 32
 	var pcs [depth]uintptr
-	n := runtime.Callers(3, pcs[:])
+	n := runtime.Callers(skipNum, pcs[:])
 	var st stack = pcs[0 : n-2]
 	return &st
 }
 
-// setCurrentAbsPath set absolute path as current project path, ff you pass a string parameter, use this string as the absolute path of the project
+// SetSkipFrameNum set the number of frames to skip, default is 3
+func SetSkipFrameNum(skip int) {
+	skipNum = skip
+}
+
+// SetCurrentAbsPath set absolute path as current project path, ff you pass a string parameter, use this string as the absolute path of the project
 func SetCurrentAbsPath(path ...string) {
 	if len(path) == 0 {
 		dir := getCurrentAbsPathByExecutable()
