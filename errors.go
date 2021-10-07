@@ -96,9 +96,13 @@ func (err Error) Unwrap() error {
 func (err Error) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
-		io.WriteString(s, err.Error())
 		if s.Flag('+') {
+			io.WriteString(s, err.Error())
 			fmt.Fprintf(s, "%+v", err.stack)
+		} else if s.Flag('#') {
+			fmt.Fprintf(s, "%+v", err.stack)
+		} else {
+			io.WriteString(s, err.Error())
 		}
 	case 's':
 		io.WriteString(s, err.Error())

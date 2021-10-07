@@ -13,6 +13,15 @@ The **errors.New()/errors.Newf()** function returns a new error that has a conte
 err := errors.New("an_error")
 fmt.Printf("%+v", err) // will print error message and context information
 ```
+
+### Print error message
+```go
+err := errors.New("an_error")
+fmt.Printf("%+v", err) // will print error message and context information
+fmt.Printf("%#v", err) // will only print error context information
+fmt.Printf("%v", err) // will only print error message
+fmt.Printf("%s", err) // will only print error message
+```
 ### Adding context to an error
 The **errors.Wrap()/errors.Wrapf()** function returns a new error that adds context to the original error. For example
 ```go
