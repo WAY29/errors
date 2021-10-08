@@ -3,7 +3,6 @@ package errors
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -199,7 +198,7 @@ func SetCurrentAbsPath(path ...string) {
 func getCurrentAbsPathByExecutable() string {
 	exePath, err := os.Executable()
 	if err != nil {
-		log.Fatal(err)
+		return ""
 	}
 	res, _ := filepath.EvalSymlinks(filepath.Dir(exePath))
 	return res
