@@ -30,6 +30,34 @@ if err != nil {
         return errors.Wrap(err, "read failed")
 }
 ```
+### Adding error type to an error
+The **errors.SetType()** function returns a new error that adds error type to wrapped error. For example
+```go
+type ErrorType uint16
+
+const (
+	RequestError ErrorType = iota
+	ResponseError
+)
+
+
+func test() {
+	err := errors.New("new error")
+	err, _ = errors.SetType(err, RequestError)
+	// or errors.SetTypeWithoutBool
+	// err = errors.SetTypeWithoutBool(err, RequestError)
+
+	switch errType := errors.GetType(err); errType {
+	case RequestError:
+		fmt.Printf("Request error: %+v\n", err)
+	case ResponseError:
+		fmt.Printf("Response error: %+v\n", err)
+	default:
+		fmt.Printf("Unknown error: %#v\n", err)
+	}
+}
+```
+
 ### Adding more information to an error
 The **errors.Wrap()/errors.Wrapf()** function can also be used to add additional information to wrapped errors. For example
 ```go
@@ -56,75 +84,39 @@ default:
 ```
 
 ### How I use this library
-I usually encapsulate this library. For example
+For example
 ```go
 package errors
 
 import (
 	"fmt"
-
 	"github.com/WAY29/errors"
 )
 
 type ErrorType uint16
 
 const (
-	Unknown ErrorType = iota
-	ProxyError
-	RequestError
+	RequestError ErrorType = iota
 	ResponseError
 )
 
-var (
-    DebugFlag = true
-)
+func main() {
+	// errors.SetCurrentAbsPath()
 
-type CustomError struct {
-	Type ErrorType
-	Msg  string
-}
+	err := errors.New("new error")
+	err, _ = errors.SetType(err, RequestError)
+	err = errors.Wrapf(err, "wrapped")
 
-func (err CustomError) Error() string {
-	return err.Msg
-}
-
-func New(Type ErrorType, msg string) error {
-	return errors.Wrap(CustomError{Type: Type, Msg: msg}, "")
-}
-
-func Newf(Type ErrorType, format string, args ...interface{}) error {
-	return errors.Wrap(CustomError{Type: Type, Msg: fmt.Sprintf(format, args...)}, "")
-}
-
-func Wrap(err error, msg string) error {
-	return errors.Wrap(err, msg)
-}
-
-func Wrapf(err error, format string, args ...interface{}) error {
-	return errors.Wrapf(err, format, args...)
-}
-
-// PrintError
-func PrintError(err error) {
-	// print error context if debug
-	if DebugFlag {
-		switch customErr := errors.Cause(err).(type) {
-		case CustomError:
-			switch customErr.Type {
-            // case RequestError:
-            // case ResponseError:
-			// case ProxyError:
-			default:
-				fmt.Printf("%s: %+v", "Known Error", err)
-			}
-		default:
-			// raw error
-            fmt.Printf("%s: %+v", "Raw Error", err)
-		}
-	} else {
-        fmt.Printf("%v", err)
+	switch errType := errors.GetType(err); errType {
+	case RequestError:
+		fmt.Printf("Request error: %+v\n", err)
+	case ResponseError:
+		fmt.Printf("Response error: %+v\n", err)
+	default:
+		fmt.Printf("Unknown error: %#v\n", err)
 	}
 }
+
 ```
 
 
