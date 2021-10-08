@@ -7,6 +7,7 @@ import (
 
 type Error struct {
 	msg           string
+	errorType     interface{}
 	originalError error
 	*stack
 }
@@ -16,17 +17,18 @@ type causer interface {
 }
 
 func New(msg string) error {
-	return Error{msg: msg, originalError: nil, stack: callers()}
+	return Error{msg: msg, errorType: "", originalError: nil, stack: callers()}
 }
 
 func Newf(format string, args ...interface{}) error {
 	msg := fmt.Sprintf(format, args...)
-	return Error{msg: msg, originalError: nil, stack: callers()}
+	return Error{msg: msg, errorType: "", originalError: nil, stack: callers()}
 }
 
 func Errorf(format string, args ...interface{}) error {
 	return Error{
 		msg:           fmt.Sprintf(format, args...),
+		errorType:     "",
 		originalError: nil,
 		stack:         callers(),
 	}
@@ -41,13 +43,13 @@ func Wrap(err error, msg string) error {
 	}
 	if customErr, ok := err.(Error); ok {
 		return Error{
-			msg:           fmt.Sprintf("%s%s", msg, customErr.msg),
+			msg: fmt.Sprintf("%s%s", msg, customErr.msg), errorType: customErr.errorType,
 			originalError: customErr,
 			stack:         callers(),
 		}
 	}
 
-	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), originalError: err, stack: callers()}
+	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), errorType: "", originalError: err, stack: callers()}
 }
 
 func Wrapf(err error, format string, args ...interface{}) error {
@@ -62,21 +64,48 @@ func Wrapf(err error, format string, args ...interface{}) error {
 	if customErr, ok := err.(Error); ok {
 		return Error{
 			msg:           fmt.Sprintf("%s%s", msg, customErr.msg),
+			errorType:     customErr.errorType,
 			originalError: customErr,
 			stack:         callers(),
 		}
 	}
 
-	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), originalError: err, stack: callers()}
+	return Error{msg: fmt.Sprintf("%s%s", msg, err.Error()), errorType: "", originalError: err, stack: callers()}
+}
+
+func GetType(err error) interface{} {
+	if customErr, ok := err.(Error); ok {
+		return customErr.errorType
+	}
+	return ""
+}
+
+func SetType(err error, errorType interface{}) (error, bool) {
+	if customErr, ok := err.(Error); ok {
+		customErr.errorType = errorType
+		return customErr, true
+	}
+	return err, false
+}
+
+func SetTypeWithoutBool(err error, errorType interface{}) error {
+	err, _ = SetType(err, errorType)
+	return err
 }
 
 func Cause(err error) error {
+	var oldErr error
 	for err != nil {
+		oldErr = err
 		cause, ok := err.(causer)
 		if !ok {
 			break
 		}
 		err = cause.Cause()
+		if err == nil {
+			err = error(oldErr)
+			break
+		}
 	}
 	return err
 }

@@ -16,6 +16,7 @@ func TestNew(t *testing.T) {
 		{"", fmt.Errorf("")},
 		{"foo", fmt.Errorf("foo")},
 		{"foo", New("foo")},
+		{"foo bar", Newf("%s %s", "foo", "bar")},
 		{"string with format specifiers: %v", errors.New("string with format specifiers: %v")},
 	}
 
@@ -83,7 +84,7 @@ func TestCause(t *testing.T) {
 		want: io.EOF,
 	}, {
 		err:  x, // return from errors.New
-		want: nil,
+		want: x,
 	}}
 
 	for i, tt := range tests {
@@ -132,6 +133,31 @@ func TestErrorf(t *testing.T) {
 		got := tt.err.Error()
 		if got != tt.want {
 			t.Errorf("Errorf(%v): got: %q, want %q", tt.err, got, tt.want)
+		}
+	}
+}
+
+type TestErrorType uint16
+
+const (
+	TestRequestError TestErrorType = iota
+	TestResponseError
+)
+
+func TestType(t *testing.T) {
+	tests := []struct {
+		err  error
+		want interface{}
+	}{
+		{SetTypeWithoutBool(New("new_error"), "ErrorType"), "ErrorType"},
+		{SetTypeWithoutBool(errors.New("std_error"), "Unable to set"), ""},
+		{SetTypeWithoutBool(New("new_error"), TestRequestError), TestRequestError},
+		{errors.New("std_error"), ""},
+	}
+	for _, tt := range tests {
+		got := GetType(tt.err)
+		if got != tt.want {
+			t.Errorf("Type(%v): got: %q, want %q", tt.err, got, tt.want)
 		}
 	}
 }
