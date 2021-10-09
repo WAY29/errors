@@ -9,11 +9,19 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
+)
+
+const (
+	depth = 32
 )
 
 var (
 	currentAbsPath string = getCurrentAbsPathByExecutable()
 	skipNum        int    = 3
+	pcsPool               = sync.Pool{New: func() interface{} {
+		return make([]uintptr, depth)
+	}}
 )
 
 // Frame represents a program counter inside a stack frame.
@@ -160,18 +168,21 @@ func (s *stack) Format(st fmt.State, verb rune) {
 }
 
 func (s *stack) StackTrace() StackTrace {
-	f := make([]Frame, len(*s))
-	for i := 0; i < len(f); i++ {
-		f[i] = Frame((*s)[i])
+	vs := *s
+	lenOfStack := len(vs)
+
+	f := make([]Frame, lenOfStack)
+	for i := 0; i < lenOfStack; i++ {
+		f[i] = Frame(vs[i])
 	}
 	return f
 }
 
 func callers() *stack {
-	const depth = 32
-	var pcs [depth]uintptr
-	n := runtime.Callers(skipNum, pcs[:])
+	pcs := pcsPool.Get().([]uintptr)
+	n := runtime.Callers(skipNum, pcs)
 	var st stack = pcs[0 : n-2]
+	pcsPool.Put(pcs)
 	return &st
 }
 
