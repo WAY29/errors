@@ -119,6 +119,21 @@ func main() {
 
 ```
 
+## Benchmark
+```
+BenchmarkError1000
+BenchmarkError1000-16
+ 2483836	       461.6 ns/op	      48 B/op	       2 allocs/op
+BenchmarkError10000
+BenchmarkError10000-16
+ 2560116	       459.6 ns/op	      48 B/op	       2 allocs/op
+BenchmarkWrappedError1000
+BenchmarkWrappedError1000-16
+  933684	      1283 ns/op	     360 B/op	      11 allocs/op
+BenchmarkWrappedError10000
+BenchmarkWrappedError10000-16
+  958335	      1263 ns/op	     360 B/op	      11 allocs/op
+```
 
 ## Notice
 - If you run golang files by `go run`, please run `errors.SetCurrentAbsPath()` first, or stack message about path will be absolute path.
