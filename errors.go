@@ -42,6 +42,7 @@ func Wrap(err error, msg string) error {
 		msg += ": "
 	}
 	if customErr, ok := err.(Error); ok {
+		customErr.stack = nil
 		return Error{
 			msg: fmt.Sprintf("%s%s", msg, customErr.msg), errorType: customErr.errorType,
 			originalError: customErr,
@@ -62,6 +63,7 @@ func Wrapf(err error, format string, args ...interface{}) error {
 	}
 
 	if customErr, ok := err.(Error); ok {
+		customErr.stack = nil
 		return Error{
 			msg:           fmt.Sprintf("%s%s", msg, customErr.msg),
 			errorType:     customErr.errorType,
